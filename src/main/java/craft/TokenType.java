@@ -7,6 +7,8 @@ public enum TokenType {
 	EQ, // ==
 	LE, // >=
 	LT, // <
+
+	Assignment, // =
 	
 	Int,
 	

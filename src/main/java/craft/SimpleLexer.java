@@ -14,6 +14,26 @@ public class SimpleLexer {
 		System.out.println("parse:" + script);
 		SimpleTokenReader tokenReader = lexer.tokenize(script);
 		dump(tokenReader);
+
+		script = " age > 45";
+		System.out.println("parse:" + script);
+		tokenReader = lexer.tokenize(script);
+		dump(tokenReader);
+
+		script = "int age = 45";
+		System.out.println("parse:" + script);
+		tokenReader = lexer.tokenize(script);
+		dump(tokenReader);
+
+		script = "inta age = 45";
+		System.out.println("parse:" + script);
+		tokenReader = lexer.tokenize(script);
+		dump(tokenReader);
+
+		script = "in age = 45";
+		System.out.println("parse:" + script);
+		tokenReader = lexer.tokenize(script);
+		dump(tokenReader);
 	}
 	
 	private StringBuffer tokenText = null;
@@ -23,12 +43,15 @@ public class SimpleLexer {
 	private SimpleToken token = null;
 	
 	private boolean isAlpha(int ch) {
-		
 		return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
 	}
 	
 	private boolean isDigit(int ch) {
 		return ch >= '0' && ch <= '9';
+	}
+
+	private boolean isBlank(int ch){
+		return ch == ' ' || ch == '\t' || ch == '\n';
 	}
 	
 	private DfaState initToken(char ch) {
@@ -42,7 +65,11 @@ public class SimpleLexer {
 		
 		DfaState newState = DfaState.Initial;
 		if(this.isAlpha(ch)) {	//第一个字符是字母
-			newState = DfaState.Id;//进入 Id状态
+			if(ch == 'i'){
+				newState =DfaState.Id_int1;
+			}else {
+				newState = DfaState.Id;//进入 Id状态
+			}
 			token.type = TokenType.Identifier;
 			tokenText.append(ch);
 		}else if(this.isDigit(ch)) {	// 第一个字符是数字
@@ -53,6 +80,13 @@ public class SimpleLexer {
 			newState = DfaState.GT;
 			token.type = TokenType.GT;
 			tokenText.append(ch);
+		}else if(ch == '='){
+			newState = DfaState.Assignment;
+			token.type = TokenType.Assignment;
+			tokenText.append(ch);
+		}
+		else {
+			newState = DfaState.Initial;// skip all unknown pattern
 		}
 		
 		
@@ -92,6 +126,7 @@ public class SimpleLexer {
 					}
 					break;
 				case GE:
+				case Assignment:
 					state = this.initToken(ch);	//退出当前状态,并保存 Token
 					break;
 				case IntLiteral:
@@ -101,10 +136,42 @@ public class SimpleLexer {
 						state = this.initToken(ch);//退出当前状态,并保存 Token
 					}
 					break;
+				case Id_int1:
+					if(ch == 'n'){
+						state = DfaState.Id_int2;
+						tokenText.append(ch);
+					}else if(isDigit(ch) || isAlpha(ch)){
+						state = DfaState.Id;	//切换为Id状态
+						tokenText.append(ch);
+					}else{
+						state = initToken(ch);
+					}
+					break;
+				case Id_int2:
+					if(ch == 't'){
+						state = DfaState.Id_int3;
+						tokenText.append(ch);
+					}else if(isDigit(ch) || isAlpha(ch)){
+						state = DfaState.Id;	//切换为Id状态
+						tokenText.append(ch);
+					}else{
+						state = initToken(ch);
+					}
+					break;
+				case Id_int3:
+					if(isBlank(ch)){
+						token.type = TokenType.Int;
+						state = initToken(ch);
+					}else {
+						state = DfaState.Id;	//切换为Id状态
+						tokenText.append(ch);
+					}
+					break;
 				default:
 					break;
 				}
 			}
+			// 把最后一个token送进去
 			if(tokenText.length() > 0) {
 				this.initToken(ch);
 			}
@@ -141,8 +208,10 @@ public class SimpleLexer {
 	private enum DfaState {
 		Initial,
 		
-		Id, GT, GE,
-		
+		Id_int1, Id_int2, Id_int3, Id, GT, GE,
+
+		Assignment,
+
 		IntLiteral
 	}
 	
