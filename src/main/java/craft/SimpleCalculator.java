@@ -1,5 +1,7 @@
 package craft;
 
+import javafx.util.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -188,10 +190,14 @@ public class SimpleCalculator {
                 if(token != null && (token.getType() == TokenType.Plus || token.getType() == TokenType.Minus)){
                     token = tokens.read();      //读出加号
                     SimpleASTNode child2 = this.multiplicative(tokens);       //计算下级节点
-                    node = new SimpleASTNode(ASTNodeType.Additive, token.getText());
-                    node.addChild(child1);          //注意，新节点在顶层，保证正确的结合性
-                    node.addChild(child2);
-                    child1 = node;
+                    if(child2 != null) {
+                        node = new SimpleASTNode(ASTNodeType.Additive, token.getText());
+                        node.addChild(child1);          //注意，新节点在顶层，保证正确的结合性
+                        node.addChild(child2);
+                        child1 = node;
+                    }else{
+                        throw new Exception("invalid additive expression, expecting the right part.");
+                    }
                 }else{
                     break;
                 }
