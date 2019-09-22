@@ -10,7 +10,7 @@ public class SimpleLexer {
 	public static void main(String[] args) {
 		SimpleLexer lexer = new SimpleLexer();
 		
-		String script = " age >= 45";
+		String script = " age >= 45;";
 		System.out.println("parse:" + script);
 		SimpleTokenReader tokenReader = lexer.tokenize(script);
 		dump(tokenReader);
@@ -31,6 +31,11 @@ public class SimpleLexer {
 		dump(tokenReader);
 
 		script = "in age = 45";
+		System.out.println("parse:" + script);
+		tokenReader = lexer.tokenize(script);
+		dump(tokenReader);
+
+		script = "2 + 3";
 		System.out.println("parse:" + script);
 		tokenReader = lexer.tokenize(script);
 		dump(tokenReader);
@@ -76,11 +81,40 @@ public class SimpleLexer {
 			newState = DfaState.IntLiteral;	//
 			token.type = TokenType.IntLiteral;
 			tokenText.append(ch);
-		}else if(ch == '>') {
+		}else if(ch == '>') {			//第一个字符是>
 			newState = DfaState.GT;
 			token.type = TokenType.GT;
 			tokenText.append(ch);
-		}else if(ch == '='){
+		}else if(ch == '+'){
+			newState = DfaState.Plus;
+			token.type = TokenType.Plus;
+			tokenText.append(ch);
+		}else if(ch == '-'){
+			newState = DfaState.Minus;
+			token.type = TokenType.Minus;
+			tokenText.append(ch);
+		}else if(ch == '*'){
+			newState = DfaState.Star;
+			token.type = TokenType.Star;
+			tokenText.append(ch);
+		}else if(ch == '/'){
+			newState = DfaState.Slash;
+			token.type = TokenType.Slash;
+			tokenText.append(ch);
+		}else if(ch == ';'){
+			newState = DfaState.SemiColon;
+			token.type = TokenType.SemiColon;
+			tokenText.append(ch);
+		}else if(ch == '('){
+			newState = DfaState.LeftParen;
+			token.type = TokenType.LeftParen;
+			tokenText.append(ch);
+		}else if(ch == ')'){
+			newState = DfaState.RightParen;
+			token.type = TokenType.RightParen;
+			tokenText.append(ch);
+		}
+		else if(ch == '='){
 			newState = DfaState.Assignment;
 			token.type = TokenType.Assignment;
 			tokenText.append(ch);
@@ -127,6 +161,13 @@ public class SimpleLexer {
 					break;
 				case GE:
 				case Assignment:
+				case Plus:
+				case Minus:
+				case Star:
+				case Slash:
+				case SemiColon:
+				case LeftParen:
+				case RightParen:
 					state = this.initToken(ch);	//退出当前状态,并保存 Token
 					break;
 				case IntLiteral:
@@ -209,8 +250,15 @@ public class SimpleLexer {
 		Initial,
 		
 		Id_int1, Id_int2, Id_int3, Id, GT, GE,
+		If, Id_if1, Id_if2, Else, Id_else1, Id_else2, Id_else3, Id_else4,
 
 		Assignment,
+
+		Plus, Minus, Star, Slash,
+
+		SemiColon,
+		LeftParen,
+		RightParen,
 
 		IntLiteral
 	}
