@@ -220,7 +220,7 @@ public class SimpleCalculator {
             if(token.getType() == TokenType.Star || token.getType() == TokenType.Slash){
                 token = tokens.read();
                 SimpleASTNode child2 = this.primary(tokens);
-                if(child1 != null){
+                if(child2 != null){
                     node = new SimpleASTNode(ASTNodeType.Multiplicative, token.getText());
                     node.addChild(child1);
                     node.addChild(child2);
