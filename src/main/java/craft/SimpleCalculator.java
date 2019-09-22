@@ -34,8 +34,8 @@ public class SimpleCalculator {
             System.err.println("\n计算："+ script + "，语法错误:" + e.getMessage());
         }
 
-        script = "2+3+4";
-        System.out.println("\n计算："+ script + "，结合性出现问题。");
+        script = "2+3+4+5";
+        System.out.println("\n计算："+ script + "，结合性问题已经修复。");
         calculator.evaluate(script);
     }
 
@@ -170,23 +170,30 @@ public class SimpleCalculator {
 
     /**
      * 语法解析：加法表达式
+     * 规则:add -> mul (+ mul)*
+     * 伪代码:mul();
+     *       while(next token is +){
+     *          mul()
+     *          createAddNode
+     *      }
      * @param tokens
      * @return
      */
     private SimpleASTNode additive(TokenReader tokens) throws Exception {
         SimpleASTNode child1 = this.multiplicative(tokens); //计算第一个子节点
         SimpleASTNode node = child1;    //
-        Token token = tokens.peek();
-        if(child1 != null && token != null){
-            if(token.getType() == TokenType.Plus || token.getType() == TokenType.Minus){
-                token = tokens.read();
-                SimpleASTNode child2 = this.additive(tokens);       //递归解析第二个节点
-                if(child2 != null){
+        if(child1 != null){
+            while (true){           //循环应用 add'
+                Token token = tokens.peek();
+                if(token != null && (token.getType() == TokenType.Plus || token.getType() == TokenType.Minus)){
+                    token = tokens.read();      //读出加号
+                    SimpleASTNode child2 = this.multiplicative(tokens);       //计算下级节点
                     node = new SimpleASTNode(ASTNodeType.Additive, token.getText());
-                    node.addChild(child1);
+                    node.addChild(child1);          //注意，新节点在顶层，保证正确的结合性
                     node.addChild(child2);
+                    child1 = node;
                 }else{
-                    throw new Exception("invalid additive expression, expecting the right part.");
+                    break;
                 }
             }
         }
